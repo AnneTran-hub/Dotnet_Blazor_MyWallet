@@ -1,0 +1,81 @@
+@using System.Globalization
+
+<section class="wallet-page">
+    <div class="wallet-card">
+        <header class="text-center">
+            <h1>My Wallet</h1>
+            <p class="balance">@Balance.ToString("C2", UsCulture)</p>
+            <p class="balance-label">Total balance</p>
+        </header>
+
+        <div class="d-flex justify-content-center gap-2 mt-4">
+            <button class="btn btn-success px-3" type="button" @onclick="() => OpenModal(TransactionType.Deposit)">
+                Deposit
+            </button>
+            <button class="btn btn-danger px-3" type="button" @onclick="() => OpenModal(TransactionType.Withdraw)">
+                Withdraw
+            </button>
+        </div>
+
+        <section class="history" aria-labelledby="transaction-history-title">
+            <h2 id="transaction-history-title">Transaction History</h2>
+
+            @if (Transactions.Count == 0)
+            {
+                <p class="empty-state">No transactions yet.</p>
+            }
+            else
+            {
+                <div class="transaction-list">
+                    @foreach (var transaction in Transactions)
+                    {
+                        <div class="transaction-row @(transaction.Type == TransactionType.Deposit ? "deposit" : "withdraw")">
+                            <span>@transaction.Type</span>
+                            <span>@transaction.Amount.ToString("C2", UsCulture)</span>
+                            <time datetime="@transaction.CreatedAt.ToString("O")">
+                                @transaction.CreatedAt.ToString("dd MMM h:mmtt", UsCulture).ToLowerInvariant()
+                            </time>
+                        </div>
+                    }
+                </div>
+            }
+        </section>
+    </div>
+</section>
+
+<ModalWallet IsOpen="IsModalOpen"
+             Mode="SelectedTransactionType"
+             CurrentBalance="Balance"
+             OnClose="CloseModal"
+             OnConfirm="HandleTransaction" />
+
+@code {
+    private static readonly CultureInfo UsCulture = CultureInfo.GetCultureInfo("en-US");
+
+    private decimal Balance { get; set; } = 2499.73m;
+    private bool IsModalOpen { get; set; }
+    private TransactionType SelectedTransactionType { get; set; }
+
+    private List<WalletTransaction> Transactions { get; } =
+    [
+        new(TransactionType.Deposit, 500m, new DateTime(2025, 1, 19, 15, 0, 0)),
+        new(TransactionType.Withdraw, 200m, new DateTime(2025, 1, 20, 10, 0, 0)),
+        new(TransactionType.Withdraw, 200m, new DateTime(2025, 1, 20, 10, 0, 0)),
+        new(TransactionType.Deposit, 500m, new DateTime(2025, 1, 19, 15, 0, 0))
+    ];
+
+    private void OpenModal(TransactionType transactionType)
+    {
+        SelectedTransactionType = transactionType;
+        IsModalOpen = true;
+    }
+
+    private void CloseModal() => IsModalOpen = false;
+
+    private void HandleTransaction(decimal amount)
+    {
+        Balance += SelectedTransactionType == TransactionType.Deposit ? amount : -amount;
+        Transactions.Insert(0, new WalletTransaction(SelectedTransactionType, amount, DateTime.Now));
+        CloseModal();
+    }
+}

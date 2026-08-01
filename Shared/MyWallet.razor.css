@@ -1,0 +1,105 @@
+.wallet-page {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+}
+
+.wallet-card {
+    width: min(100%, 48rem);
+    padding: 2.5rem 2rem 2rem;
+    border-radius: .45rem;
+    background: #212529;
+    color: #fff;
+    box-shadow: 0 .35rem .7rem rgba(0, 0, 0, .2);
+}
+
+h1 {
+    margin: 0;
+    font-size: clamp(1.75rem, 5vw, 2.25rem);
+    font-weight: 700;
+}
+
+.balance {
+    margin: 1.25rem 0 .1rem;
+    color: #fffb00;
+    font-size: clamp(1.75rem, 5vw, 2.15rem);
+    font-weight: 800;
+}
+
+.balance-label {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.history {
+    margin-top: 2.5rem;
+}
+
+.history h2 {
+    margin-bottom: 1rem;
+    text-align: center;
+    font-size: clamp(1.4rem, 4vw, 1.85rem);
+    font-weight: 700;
+}
+
+.transaction-list {
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: .4rem;
+}
+
+.transaction-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.25fr;
+    gap: .75rem;
+    padding: .75rem 1rem;
+    color: #15231f;
+}
+
+.transaction-row + .transaction-row {
+    border-top: 1px solid rgba(0, 0, 0, .15);
+}
+
+.transaction-row.deposit {
+    background: #cce5dc;
+}
+
+.transaction-row.withdraw {
+    background: #f8d7da;
+    color: #48171b;
+}
+
+.transaction-row time {
+    text-align: right;
+}
+
+.empty-state {
+    margin: 0;
+    padding: 1.5rem;
+    border-radius: .4rem;
+    background: rgba(255, 255, 255, .08);
+    text-align: center;
+    color: #ced4da;
+}
+
+@media (max-width: 575.98px) {
+    .wallet-page {
+        place-items: start center;
+        padding: .75rem;
+    }
+
+    .wallet-card {
+        padding: 2rem 1rem 1rem;
+    }
+
+    .transaction-row {
+        grid-template-columns: 1fr auto;
+    }
+
+    .transaction-row time {
+        grid-column: 1 / -1;
+        text-align: left;
+        font-size: .85rem;
+    }
+}

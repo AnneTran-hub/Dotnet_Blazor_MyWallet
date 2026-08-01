@@ -1,0 +1,94 @@
+@using System.Globalization
+
+@if (IsOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="wallet-modal-title">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <form @onsubmit="Submit" @onsubmit:preventDefault>
+                    <div class="modal-header">
+                        <h2 class="modal-title fs-5" id="wallet-modal-title">@Title</h2>
+                        <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <label for="wallet-amount" class="form-label">Amount</label>
+                        <input id="wallet-amount"
+                               class="form-control @(ValidationMessage is null ? string.Empty : "is-invalid")"
+                               type="number"
+                               min="0.01"
+                               step="0.01"
+                               inputmode="decimal"
+                               autocomplete="off"
+                               @bind="AmountText"
+                               @bind:event="oninput"
+                               autofocus />
+                        @if (ValidationMessage is not null)
+                        {
+                            <div class="invalid-feedback">@ValidationMessage</div>
+                        }
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
+                        <button type="submit" class="btn btn-primary">OK</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public TransactionType Mode { get; set; }
+    [Parameter] public decimal CurrentBalance { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<decimal> OnConfirm { get; set; }
+
+    private string AmountText { get; set; } = string.Empty;
+    private string? ValidationMessage { get; set; }
+    private bool WasOpen { get; set; }
+    private TransactionType PreviousTransactionType { get; set; }
+
+    private string Title => Mode == TransactionType.Deposit
+        ? "Deposit Money"
+        : "Withdraw Money";
+
+    protected override void OnParametersSet()
+    {
+        if (IsOpen && (!WasOpen || PreviousTransactionType != Mode))
+        {
+            AmountText = string.Empty;
+            ValidationMessage = null;
+        }
+
+        WasOpen = IsOpen;
+        PreviousTransactionType = Mode;
+    }
+
+    private async Task Submit()
+    {
+        if (!TryReadAmount(out var amount) || amount <= 0)
+        {
+            ValidationMessage = "Please enter a valid amount greater than zero.";
+            return;
+        }
+
+        if (Mode == TransactionType.Withdraw && amount > CurrentBalance)
+        {
+            ValidationMessage = "The withdrawal amount cannot exceed the current balance.";
+            return;
+        }
+
+        ValidationMessage = null;
+        await OnConfirm.InvokeAsync(amount);
+    }
+
+    private bool TryReadAmount(out decimal amount) =>
+        decimal.TryParse(AmountText, NumberStyles.Number, CultureInfo.InvariantCulture, out amount) ||
+        decimal.TryParse(AmountText, NumberStyles.Number, CultureInfo.CurrentCulture, out amount);
+
+    private Task Close() => OnClose.InvokeAsync();
+}
